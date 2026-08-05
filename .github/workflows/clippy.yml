@@ -1,0 +1,37 @@
+---
+name: Rust Linting
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+      - production
+    paths:
+      - '**.rs'
+      - 'Cargo.toml'
+  pull_request:
+    branches:
+      - master
+      - production
+    paths:
+      - '**.rs'
+      - 'Cargo.toml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    name: Lint code base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: rust-clippy-check
+        uses: actions-rs/clippy-check@v1.0.7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,12 @@
+{
+  "include": [
+    "screenly",
+    "libs"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "tests"
+  ],
+  "typeCheckingMode": "standard",
+}

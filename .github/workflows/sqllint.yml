@@ -1,0 +1,38 @@
+---
+name: SQL Linting
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+      - production
+    paths:
+      - '**.sql'
+  pull_request:
+    branches:
+      - master
+      - production
+    paths:
+      - '**.sql'
+
+jobs:
+  validate-sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install sqlfluff
+        run: |
+          python -m pip install --upgrade pip
+          pip install sqlfluff==2.3.5
+
+      - name: Validate PostgreSQL files
+        run: |
+          sqlfluff lint $(git ls-files '*.sql') --dialect postgres

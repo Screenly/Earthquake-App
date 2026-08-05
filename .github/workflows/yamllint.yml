@@ -1,0 +1,40 @@
+---
+name: YAML Linting
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+      - production
+    paths:
+      - '**.yaml'
+      - '**.yml'
+  pull_request:
+    branches:
+      - master
+      - production
+    paths:
+      - '**.yaml'
+      - '**.yml'
+
+jobs:
+  validate-yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate YAML files
+        run: |
+          if [ -n "$(git ls-files '*.yaml')" ]; then
+            yamllint -c .github/linters/yamllint.rules \
+              -f github $(git ls-files '*.yaml')
+          fi
+
+      - name: Validate YML files
+        run: |
+          if [ -n "$(git ls-files '*.yml')" ]; then
+            yamllint -c .github/linters/yamllint.rules \
+              -f github $(git ls-files '*.yml')
+          fi
