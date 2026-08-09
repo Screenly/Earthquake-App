@@ -1,0 +1,107 @@
+---
+syntax: manifest_v1
+description: >-
+  Live global earthquake monitor. Plots real-time USGS seismic events on a dark
+  world map, sized and coloured by magnitude, with a feed of the most recent
+  significant quakes. No API key required.
+author: Will C
+homepage_url: https://earthquake.usgs.gov
+categories:
+  - Dashboards
+entrypoint:
+  type: file
+ready_signal: false
+settings:
+  debug:
+    type: string
+    default_value: "off"
+    title: Debug overlay
+    optional: true
+    help_text:
+      properties:
+        help_text: Shows a live status and error log on the screen for troubleshooting.
+        options:
+          - label: "Off"
+            value: "off"
+          - label: "On"
+            value: "on"
+        type: select
+      schema_version: 1
+  magnitude_threshold:
+    type: string
+    default_value: '4.5'
+    title: Minimum magnitude
+    optional: true
+    help_text:
+      properties:
+        help_text: Only plot quakes at or above this magnitude.
+        options:
+          - label: All (M1.0+)
+            value: '1.0'
+          - label: Minor (M2.5+)
+            value: '2.5'
+          - label: Light (M4.5+)
+            value: '4.5'
+          - label: Significant only
+            value: significant
+        type: select
+      schema_version: 1
+  map_focus:
+    type: string
+    default_value: auto
+    title: Map focus
+    optional: true
+    help_text:
+      properties:
+        help_text: Auto centres on this screen's location; World shows the whole globe.
+        options:
+          - label: Auto (screen location)
+            value: auto
+          - label: Whole world
+            value: world
+        type: select
+      schema_version: 1
+  refresh_minutes:
+    type: string
+    default_value: '5'
+    title: Refresh interval (minutes)
+    optional: true
+    help_text:
+      properties:
+        help_text: How often to pull fresh data from USGS.
+        type: number
+      schema_version: 1
+  time_window:
+    type: string
+    default_value: week
+    title: Time window
+    optional: true
+    help_text:
+      properties:
+        help_text: How far back to show earthquakes.
+        options:
+          - label: Past hour
+            value: hour
+          - label: Past day
+            value: day
+          - label: Past 7 days
+            value: week
+          - label: Past 30 days
+            value: month
+        type: select
+      schema_version: 1
+  units:
+    type: string
+    default_value: miles
+    title: Distance units
+    optional: true
+    help_text:
+      properties:
+        help_text: Units for the distances and depths in the event list.
+        options:
+          - label: Miles
+            value: miles
+          - label: Kilometres
+            value: km
+        type: select
+      schema_version: 1

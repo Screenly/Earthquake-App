@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Seismic Monitor</title>
+    <style>html, body { margin: 0; background: #0a0f1c; }</style>
+    <link rel="stylesheet" href="static/leaflet.css" />
+    <link rel="stylesheet" href="static/style.css" />
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <aside id="rail">
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-value" id="stat-count">–</div>
+          <div class="metric-label" id="label-count">events</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value"><span class="max-dot" id="max-dot"></span><span id="stat-max">–</span></div>
+          <div class="metric-label" id="label-max">strongest</div>
+        </div>
+      </div>
+      <div class="rail-head">
+        <span class="rail-title">Latest events</span>
+      </div>
+      <ul id="event-list"></ul>
+      <div id="empty-state" hidden>No qualifying events in this window.</div>
+    </aside>
+
+    <svg id="poi-line"><line id="poi-line-under" /><line id="poi-line-over" /></svg>
+    <div id="poi" hidden>
+      <div class="poi-head">
+        <span class="poi-rule" id="poi-rule"></span>
+        <span class="poi-mag" id="poi-mag">–</span>
+        <span class="poi-name" id="poi-name"></span>
+      </div>
+      <div class="poi-meta" id="poi-meta"></div>
+    </div>
+
+    <div id="tsunami" hidden><span class="t-badge">Tsunami flag</span><span id="tsunami-text"></span></div>
+
+    <div id="toast" hidden></div>
+
+    <div id="splash">
+      <div class="splash-box">
+        <div class="splash-line"><span></span></div>
+        <div class="splash-text">Connecting</div>
+      </div>
+    </div>
+
+    <script src="static/leaflet.js"></script>
+    <script src="static/world.js"></script>
+    <script src="static/plates.js"></script>
+    <script src="screenly.js?version=1"></script>
+    <script src="static/app.js"></script>
+  </body>
+</html>
