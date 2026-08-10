@@ -1,10 +1,11 @@
 ---
 syntax: manifest_v1
+id: 01KZ77RN8V1GWCGTYG53HP1V0T
 description: >-
   Live global earthquake monitor. Plots real-time USGS seismic events on a dark
   world map, sized and coloured by magnitude, with a feed of the most recent
   significant quakes. No API key required.
-author: Will C
+author: Will Cornforth
 homepage_url: https://earthquake.usgs.gov
 categories:
   - Dashboards
@@ -12,21 +13,6 @@ entrypoint:
   type: file
 ready_signal: false
 settings:
-  debug:
-    type: string
-    default_value: "off"
-    title: Debug overlay
-    optional: true
-    help_text:
-      properties:
-        help_text: Shows a live status and error log on the screen for troubleshooting.
-        options:
-          - label: "Off"
-            value: "off"
-          - label: "On"
-            value: "on"
-        type: select
-      schema_version: 1
   magnitude_threshold:
     type: string
     default_value: '4.5'
