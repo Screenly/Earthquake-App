@@ -6,29 +6,30 @@ magnitude, and lists the most recent quakes in a side rail. Built to the Screenl
 Edge App spec: `screenly.yml` manifest + `index.html` entrypoint + the injected
 `screenly.js` bridge. Fully self-contained — no tile CDN, no JS CDN, no fonts CDN.
 
-![Centred on the screen's location](screenshots/focused.png)
-
-![Whole-world view](screenshots/world.png)
-
 ## What each file is
 
 - `screenly.yml` — the Edge App manifest: entrypoint, metadata, and the
   user-configurable settings.
 - `index.html` — the entrypoint the player loads (`entrypoint.type: file`).
-- `static/app.js` — all the logic: reads settings + device metadata off the
-  `screenly` bridge, builds the USGS feed URL, fetches through the player's CORS
-  proxy, draws the map, and calls `screenly.signalReadyForRendering()` once the
-  first frame is ready.
-- `static/style.css` — the signage styling (dark, no cursor, scales with the
+- `static/js/maths.js` — every formula, as pure functions: haversine distance,
+  compass bearing, date-line longitude wrapping, coordinate parsing, dot radius
+  curve, quake scoring, and the label-placement geometry.
+- `static/js/render.js` — everything that draws: owns the Leaflet map (land,
+  plates, quake dots, the screen marker) and writes every piece of page UI —
+  the rail rows, the two stats, the label card and its leader line, the toast,
+  the splash. No decisions made here.
+- `static/js/app.js` — the wiring and the decisions: reads settings + device
+  metadata off the `screenly` bridge, builds the USGS feed URL, fetches through
+  the player's CORS proxy, scores the quakes, decides what to show, and hands
+  it all to `render.js`.
+- `static/css/style.css` — the signage styling (dark, no cursor, scales with the
   screen).
-- `static/leaflet.{js,css}` + `static/images/` — Leaflet 1.9.4, vendored.
-- `static/world.js` / `static/world.json` — Natural Earth country polygons: the
-  built-in offline basemap. The app renders its own dark cartography (land fill,
-  cased coastlines) with no network dependency at all.
-- `static/plates.js` / `static/plates.json` — tectonic plate boundaries
-  (Bird 2003); the quakes visibly trace the plate edges.
-- `static/fonts/` — Inter (UI) and JetBrains Mono (numerals), vendored so every
-  player renders identical typography.
+- `static/js/leaflet.js` + `static/css/leaflet.css` — Leaflet 1.9.4, vendored.
+- `static/data/world.js` — Natural Earth country polygons: the built-in offline
+  basemap. The app renders its own dark cartography (land fill, cased
+  coastlines) with no network dependency at all.
+- `static/data/plates.js` — tectonic plate boundaries (Bird 2003); the quakes
+  visibly trace the plate edges.
 
 ## Behaviour
 
@@ -38,19 +39,12 @@ Edge App spec: `screenly.yml` manifest + `index.html` entrypoint + the injected
 - **Point of interest** — a static callout labels the most notable quake on
   screen (scored by strength, recency, and closeness to the screen's location)
   with a leader line to its dot; the pick rotates every 5 minutes.
-- **Tsunami strip** — if any event in the window carries the USGS tsunami flag,
-  an alarm banner appears with the strongest flagged event.
-- **Local testing overrides** — URL parameters beat settings for quick testing:
-  `?focus=auto&lat=51.5&lng=-0.13&mag=1.0&window=week&units=km&debug=on`.
-  With `focus=auto` and no coordinates at all, the app asks the browser for
-  your location (click Allow); on a player the screen's own coordinates always
-  win.
 
 ## See it running (no player needed)
 
 Open `index.html` in any browser. Off a player there's no `screenly` bridge, so
-the app falls back to its defaults and fetches live USGS data directly (USGS
-allows cross-origin use).
+the app falls back to its defaults (whole-world view) and fetches live USGS
+data directly (USGS allows cross-origin use).
 
 ## Deploy to your screens (Screenly CLI)
 
@@ -88,7 +82,6 @@ screenly playlist append <PLAYLIST_UUID> <ASSET_UUID> <DURATION_SECONDS>
 | `refresh_minutes` | number | `5` | How often to re-pull USGS. |
 | `map_focus` | `auto`, `world` | `auto` | `auto` centres on the screen's own coordinates; `world` shows the whole map. |
 | `units` | `miles`, `km` | `miles` | Units for distances and depths in the event list. |
-| `debug` | `off`, `on` | `off` | On-screen status/error log for troubleshooting. |
 
 ## How it uses the Screenly bridge
 
