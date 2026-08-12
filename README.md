@@ -11,17 +11,8 @@ Edge App spec: `screenly.yml` manifest + `index.html` entrypoint + the injected
 - `screenly.yml` — the Edge App manifest: entrypoint, metadata, and the
   user-configurable settings.
 - `index.html` — the entrypoint the player loads (`entrypoint.type: file`).
-- `static/js/maths.js` — every formula, as pure functions: haversine distance,
-  compass bearing, date-line longitude wrapping, coordinate parsing, dot radius
-  curve, quake scoring, and the label-placement geometry.
-- `static/js/render.js` — everything that draws: owns the Leaflet map (land,
-  plates, quake dots, the screen marker) and writes every piece of page UI —
-  the rail rows, the two stats, the label card and its leader line, the toast,
-  the splash. No decisions made here.
-- `static/js/app.js` — the wiring and the decisions: reads settings + device
-  metadata off the `screenly` bridge, builds the USGS feed URL, fetches through
-  the player's CORS proxy, scores the quakes, decides what to show, and hands
-  it all to `render.js`.
+- `static/js/app.js` — the whole app: reads the settings, fetches the feed,
+  draws the map, the dots, the label and the rail.
 - `static/css/style.css` — the signage styling (dark, no cursor, scales with the
   screen).
 - `static/js/leaflet.js` + `static/css/leaflet.css` — Leaflet 1.9.4, vendored.
@@ -36,9 +27,8 @@ Edge App spec: `screenly.yml` manifest + `index.html` entrypoint + the injected
 - **Map focus** — by default the map centres on the screen's own coordinates
   (from `screenly.metadata.coordinates`) and drops a marker at that spot; set it
   to `world` for the whole-globe frame instead.
-- **Point of interest** — a static callout labels the most notable quake on
-  screen (scored by strength, recency, and closeness to the screen's location)
-  with a leader line to its dot; the pick rotates every 5 minutes.
+- **Label** — one quake on screen is named, picked by magnitude with a penalty
+  for age. The pick rotates every 5 minutes.
 
 ## See it running (no player needed)
 

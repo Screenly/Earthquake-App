@@ -19,7 +19,7 @@
         </div>
         <div class="metric">
           <div class="metric-value"><span class="max-dot" id="max-dot"></span><span id="stat-max">–</span></div>
-          <div class="metric-label" id="label-max">strongest</div>
+          <div class="metric-label">strongest</div>
         </div>
       </div>
       <div class="rail-head">
@@ -28,16 +28,6 @@
       <ul id="event-list"></ul>
       <div id="empty-state" hidden>No qualifying events in this window.</div>
     </aside>
-
-    <svg id="poi-line"><line id="poi-line-under" /><line id="poi-line-over" /></svg>
-    <div id="poi" hidden>
-      <div class="poi-head">
-        <span class="poi-rule" id="poi-rule"></span>
-        <span class="poi-mag" id="poi-mag">–</span>
-        <span class="poi-name" id="poi-name"></span>
-      </div>
-      <div class="poi-meta" id="poi-meta"></div>
-    </div>
 
     <div id="toast" hidden></div>
 
@@ -49,8 +39,6 @@
     </div>
 
     <script src="static/js/leaflet.js"></script>
-    <script src="static/js/maths.js"></script>
-    <script src="static/js/render.js"></script>
     <script src="static/data/world.js"></script>
     <script src="static/data/plates.js"></script>
     <script src="screenly.js?version=1"></script>
