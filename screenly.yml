@@ -8,6 +8,7 @@ categories:
   - Dashboards
 entrypoint:
   type: file
+  uri: index.html
 ready_signal: false
 settings:
   units:
