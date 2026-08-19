@@ -9,7 +9,7 @@ categories:
 entrypoint:
   type: file
   uri: index.html
-ready_signal: false
+ready_signal: true
 settings:
   units:
     type: string

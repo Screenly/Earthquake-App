@@ -31,8 +31,6 @@
     .nearest .halo { width: 2.3rem; height: 2.3rem; border: .16rem solid var(--signal); }
     .tag { border-radius: 0; left: 2.3rem; top: -.73rem; transform: none; white-space: nowrap;
            font-size: 1.25rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-60); }
-    .pin { position: absolute; z-index: 1; width: .75rem; height: .75rem;
-           margin: -.375rem 0 0 -.375rem; border-radius: 50%; background: var(--signal); opacity: .5; }
 
     .label { font-size: 1.05rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-35); }
 
@@ -127,7 +125,6 @@ var widestKm = 12000;
 var compass = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
                "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 var found = [];
-var visible = [];
 var viewKm = 0;
 var west, east, north, south;
 
@@ -263,24 +260,15 @@ function grid() {
 
 function draw() {
     frame(viewKm);
-    visible = found.filter(inView);
-    if (visible.length === 0) {
+    var quake = found.find(inView);
+    if (!quake) {
         return;
     }
-    var quake = visible[0];
     grid();
     at(you, coordinates[0], coordinates[1]);
     at(nearest, latitudeOf(quake), longitudeOf(quake));
     reach.setAttribute("d", "M" + coordinates[1] + " " + -coordinates[0] +
         "L" + longitudeOf(quake) + " " + -latitudeOf(quake));
-
-    document.querySelectorAll(".pin").forEach(pin => pin.remove());
-    visible.forEach(other => {
-        var pin = document.createElement("div");
-        pin.className = "pin";
-        at(pin, latitudeOf(other), longitudeOf(other));
-        map.appendChild(pin);
-    });
 
     say("mag", quake.properties.mag.toFixed(1));
     say("spot", quake.properties.place);
@@ -290,7 +278,7 @@ function draw() {
 }
 
 function load() {
-    fetch(url).then(response => response.json()).then(feed => {
+    return fetch(url).then(response => response.json()).then(feed => {
         found = feed.features.sort((a, b) => kmAway(a) - kmAway(b));
         viewKm = widthToFitTen(found);
         draw();
@@ -312,12 +300,13 @@ if (positioned()) {
     say("where", place);
     say("coord", degrees(coordinates[0], "N", "S") + ", " + degrees(coordinates[1], "E", "W"));
     window.addEventListener("resize", draw);
-    load();
+    load().finally(() => screenly.signalReadyForRendering());
     setInterval(load, 300000);
 } else {
     stage.className = "unlocated";
     say("lede", "This screen");
     say("where", "No location set");
     say("coord", "Add one in Screenly and the map will follow");
+    screenly.signalReadyForRendering();
 }
 </script>
