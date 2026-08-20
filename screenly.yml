@@ -1,0 +1,28 @@
+---
+syntax: manifest_v1
+id: 01KZ77RN8V1GWCGTYG53HP1V0T
+description: Calls out the earthquakes around this screen on a map centred on its own location.
+author: Will Cornforth
+homepage_url: https://earthquake.usgs.gov
+categories:
+  - Dashboards
+entrypoint:
+  type: file
+  uri: index.html
+ready_signal: true
+settings:
+  units:
+    type: string
+    default_value: miles
+    title: Distance units
+    optional: true
+    help_text:
+      properties:
+        help_text: Units for the distances in the labels.
+        options:
+          - label: Miles
+            value: miles
+          - label: Kilometres
+            value: km
+        type: select
+      schema_version: 1
