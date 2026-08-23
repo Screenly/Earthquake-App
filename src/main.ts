@@ -45,9 +45,12 @@ const KM_PER_DEGREE = 111
 const YOU_ACROSS = 0.5
 const YOU_DOWN = 0.5
 
-const stage = document.getElementById('stage') as HTMLElement
-const map = document.getElementById('map') as HTMLElement
-const world = document.querySelector<SVGSVGElement>('#world')!
+// Looked up in start(), not here. This file is bundled as a classic script and
+// inlined into <head>, so module scope runs before <body> exists — resolving
+// these eagerly would leave them null.
+let stage!: HTMLElement
+let map!: HTMLElement
+let world!: SVGSVGElement
 
 let coordinates: [number, number] = [NaN, NaN]
 let found: Quake[] = []
@@ -299,6 +302,10 @@ function positioned(): boolean {
 
 async function start(): Promise<void> {
   setupErrorHandling()
+
+  stage = document.getElementById('stage') as HTMLElement
+  map = document.getElementById('map') as HTMLElement
+  world = document.querySelector<SVGSVGElement>('#world')!
 
   setPath('land', landPath)
   setPath('plates', platePath)
