@@ -1,0 +1,294 @@
+/*
+  The library's stylesheet is deliberately not imported. It inlines three Inter
+  woff2 faces as base64 — 444 KB of the 458 KB it produces — and this app is
+  designed on system-ui and ui-monospace on purpose, so none of it is used. Its
+  theme tokens are unused too: the palette here is fixed, and it is the design.
+*/
+@layer app {
+  :root {
+    --ink: #16181b;
+    --ink-60: rgba(22, 24, 27, 0.6);
+    --ink-35: rgba(22, 24, 27, 0.35);
+    --paper: #f3f1ec;
+    --signal: #d9451f;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  /*
+    One unit for the whole design: 1rem is a hundredth of the screen's width,
+    or of its height scaled to 16:9, whichever is smaller. Everything below is
+    in rem, so the layout fills any signage shape without clipping.
+
+    This is deliberately not <auto-scaler>: that scales a fixed 1920x1080
+    design, which would letterbox a portrait screen. The map window is fitted
+    to the screen's real aspect ratio instead.
+  */
+  html {
+    font-size: min(1vw, 1.7778vh);
+  }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font:
+      1.15rem system-ui,
+      'DejaVu Sans',
+      sans-serif;
+  }
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  #map {
+    position: absolute;
+    inset: 0;
+  }
+
+  #map svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  #land {
+    fill: rgba(22, 24, 27, 0.055);
+    stroke: rgba(22, 24, 27, 0.5);
+    stroke-width: 2.5;
+    vector-effect: non-scaling-stroke;
+  }
+
+  #plates {
+    fill: none;
+    stroke: var(--signal);
+    stroke-opacity: 0.4;
+    stroke-width: 1.4;
+    stroke-dasharray: 7 6;
+    vector-effect: non-scaling-stroke;
+  }
+
+  #graticule {
+    fill: none;
+    stroke: rgba(22, 24, 27, 0.1);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+
+  #reach {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.5;
+    stroke-width: 2;
+    stroke-dasharray: 3 12;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .marker {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .marker div {
+    position: absolute;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .halo {
+    width: 3.33rem;
+    height: 3.33rem;
+    border: 0.1rem solid var(--ink-35);
+  }
+
+  .you .dot {
+    width: 1.15rem;
+    height: 1.15rem;
+    background: var(--ink);
+    box-shadow: 0 0 0 0.42rem rgba(243, 241, 236, 0.9);
+  }
+
+  .nearest .dot {
+    width: 1.35rem;
+    height: 1.35rem;
+    background: var(--signal);
+    box-shadow: 0 0 0 0.42rem rgba(243, 241, 236, 0.9);
+  }
+
+  .nearest .halo {
+    width: 2.3rem;
+    height: 2.3rem;
+    border: 0.16rem solid var(--signal);
+  }
+
+  .tag {
+    border-radius: 0;
+    left: 2.3rem;
+    top: -0.73rem;
+    transform: none;
+    white-space: nowrap;
+    font-size: 1.25rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+  }
+
+  .label {
+    font-size: 1.05rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-35);
+  }
+
+  /* Same paper, one shade down and blurred, with a hairline so it still reads as a card. */
+  .layer {
+    position: absolute;
+    z-index: 4;
+    background: rgba(226, 222, 213, 0.58);
+    backdrop-filter: blur(18px) saturate(1.1);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    border-radius: 1rem;
+    box-shadow: inset 0 0 0 0.07rem rgba(22, 24, 27, 0.1);
+  }
+
+  .brand {
+    top: 2.6rem;
+    left: 2.6rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 1.05rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    white-space: nowrap;
+  }
+
+  .brand b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .live {
+    width: 0.73rem;
+    height: 0.73rem;
+    border-radius: 50%;
+    background: var(--signal);
+  }
+
+  .panel {
+    top: 5.6rem;
+    right: 2.6rem;
+    padding: 1.7rem 2rem;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.4rem;
+  }
+
+  .mag {
+    display: flex;
+    align-items: baseline;
+    gap: 0.83rem;
+    line-height: 0.82;
+    margin-top: 0.42rem;
+  }
+
+  .mag .n {
+    font-size: 11rem;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    color: var(--signal);
+  }
+
+  .mag .u {
+    font-size: 1.35rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+  }
+
+  .spot {
+    font-size: 2.6rem;
+    font-weight: 500;
+    max-width: 22ch;
+    line-height: 1.15;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-items: end;
+    gap: 0 2.2rem;
+    width: 100%;
+    padding-top: 1.4rem;
+    border-top: 0.1rem solid rgba(22, 24, 27, 0.14);
+  }
+
+  .facts .v {
+    font-family: ui-monospace, 'DejaVu Sans Mono', monospace;
+    font-size: 2.9rem;
+    font-weight: 500;
+    margin-top: 0.6rem;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .here {
+    bottom: 2.6rem;
+    left: 2.6rem;
+    padding: 1.3rem 1.7rem;
+  }
+
+  .here .place {
+    font-size: 3.1rem;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-top: 0.5rem;
+  }
+
+  .here .coord {
+    margin-top: 0.45rem;
+    font-family: ui-monospace, 'DejaVu Sans Mono', monospace;
+    font-size: 1.2rem;
+    color: var(--ink-35);
+  }
+
+  /*
+    Two states that have nothing to plot: a screen with no location set, and a
+    feed that failed with nothing cached to fall back on. Both keep the
+    wordmark, drop the map and the readout, and say what is going on.
+  */
+  .unlocated #map,
+  .unlocated .panel,
+  .unavailable #map,
+  .unavailable .panel {
+    display: none;
+  }
+
+  .unlocated .here,
+  .unavailable .here {
+    left: 50%;
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+}
