@@ -27,17 +27,6 @@ interface FeedFeature {
 const CACHE_NAMESPACE = 'earthquake-app'
 const CACHE_KEY = 'nearest'
 
-/**
- * The screenshotter gives the page 10s to go quiet and then up to 10s more for
- * the ready signal. Time the feed out well inside that, so a hanging USGS still
- * leaves room to fall back to cache, draw, and signal.
- */
-const FETCH_TIMEOUT_MS = 8000
-const REFRESH_MS = 300000
-
-/** Only the ten nearest are kept: they size the view, and the closest is drawn. */
-const KEPT = 10
-
 const RADIANS = Math.PI / 180
 const KM_PER_DEGREE = 111
 
@@ -249,6 +238,8 @@ function unavailable(): void {
 
 /** Nearest first, trimmed to what is drawn, capped at what the view needs. */
 function nearestKept(features: FeedFeature[]): Quake[] {
+  // Only the ten nearest are kept: they size the view, and the closest is drawn.
+  const kept = 10
   return features
     .filter((feature) => feature.properties.mag !== null)
     .map((feature) => ({
@@ -259,7 +250,7 @@ function nearestKept(features: FeedFeature[]): Quake[] {
       lng: feature.geometry.coordinates[0],
     }))
     .sort((a, b) => kmAway(a) - kmAway(b))
-    .slice(0, KEPT)
+    .slice(0, kept)
 }
 
 /**
@@ -271,10 +262,14 @@ function nearestKept(features: FeedFeature[]): Quake[] {
  *                                       : cached ? show that : abort
  */
 async function load(): Promise<void> {
+  // The screenshotter gives the page 10s to go quiet and then up to 10s more
+  // for the ready signal. Time the feed out well inside that, so a hanging USGS
+  // still leaves room to fall back to cache, draw, and signal.
+  const fetchTimeoutMs = 8000
   try {
     const feedUrl = `${screenly.cors_proxy_url}/https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson`
     const response = await fetch(feedUrl, {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(fetchTimeoutMs),
     })
     if (!response.ok) {
       throw new Error(
@@ -334,7 +329,8 @@ async function start(): Promise<void> {
   await load()
   signalReady()
 
-  setInterval(() => void load(), REFRESH_MS)
+  const refreshMs = 300000
+  setInterval(() => void load(), refreshMs)
 }
 
 document.addEventListener('DOMContentLoaded', () => void start())
