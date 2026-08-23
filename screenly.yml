@@ -2,7 +2,7 @@
 syntax: manifest_v1
 id: 01KZ77RN8V1GWCGTYG53HP1V0T
 description: Calls out the earthquakes around this screen on a map centred on its own location.
-icon: 'https://raw.githubusercontent.com/Screenly/Earthquake-App/master/icon.png'
+icon: 'https://raw.githubusercontent.com/Screenly/Earthquake-App/87fa8f114e7a17f84012aa3e999ad95c831bdcc3/icon.png'
 author: Will Cornforth
 homepage_url: https://earthquake.usgs.gov
 categories:
