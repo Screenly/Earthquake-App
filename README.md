@@ -1,5 +1,10 @@
 # Earthquakes Near This Screen — Screenly Edge App
 
+![A map centred on the screen, with the nearest earthquake called out](screenshots/silicon-valley.png)
+
+<sub>Rendered from the live USGS feed at the screen location in this repo's
+`mock-data.yml`, so `screenly edge-app run` shows the same view.</sub>
+
 A map centred on the screen's own location. The nearest earthquake is called out
 — magnitude, place, distance, direction, how long ago — with a dashed line from
 the screen to it. One quake, not a scatter of them: nothing else is marked.

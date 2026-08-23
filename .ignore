@@ -1,5 +1,7 @@
-.git/
-.github/
-screenshots/
+.git*
+.github*
+.claude*
+screenshots*
+icon.png
 mock-data.yml
 README.md
