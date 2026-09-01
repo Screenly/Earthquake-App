@@ -50,8 +50,9 @@ though only the closest is marked — never narrower than about 900 miles across
 It is stretched horizontally by 1/cos(latitude) so distances read correctly, and
 the graticule is drawn from the same window.
 
-The outlines and the plate boundaries live in `src/data/*.txt` and are imported
-as raw strings, so the source files stay readable.
+The whole map — the outlines, the plate boundaries, and the empty paths the
+graticule and the distance line are drawn into — is `src/world.svg`, imported as
+a raw string and injected at start-up, so `index.html` stays readable.
 
 Every size on the page is a multiple of one unit — a hundredth of the screen's
 width, or of its height scaled to 16:9, whichever is smaller — so the layout
@@ -98,13 +99,17 @@ which cannot run it. CI is unaffected — it runs on `ubuntu-latest`.
 Until that is fixed upstream, call the tools directly:
 
 ```bash
-npx tsc --noEmit --project tsconfig.json
+node node_modules/typescript/bin/tsc --noEmit --project tsconfig.json
 npx eslint --config node_modules/@screenly/edge-apps/eslint.config.ts .
-npx prettier --check src/ README.md index.html
+npx prettier --check src/ scripts/ README.md index.html
 npx vite build --config node_modules/@screenly/edge-apps/vite.config.ts
 ```
 
 Those are exactly what the library's own commands shell out to.
+
+`tsc` is invoked through `node` rather than `npx`: with Bun's shim layout npx
+cannot find the local one and silently installs `tsc@2.0.4` from the registry,
+which is an unrelated package.
 
 ## Deploy
 

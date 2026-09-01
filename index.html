@@ -8,29 +8,8 @@
   </head>
   <body>
     <div id="stage">
+      <!-- src/world.svg is injected ahead of the markers at start-up. -->
       <div id="map">
-        <!--
-          A flat (equirectangular) world, y = -latitude. The outlines and the
-          plate boundaries are set from src/data/*.txt at start-up, so this
-          file stays readable. The two <use> copies repeat the land either
-          side of the antimeridian, so a view across the seam is not blank.
-        -->
-        <svg
-          id="world"
-          preserveAspectRatio="none"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-        >
-          <rect x="-540" y="-90" width="1080" height="180" fill="#f3f1ec" />
-          <path id="land" />
-          <use xlink:href="#land" href="#land" x="360" />
-          <use xlink:href="#land" href="#land" x="-360" />
-          <path id="plates" />
-          <use xlink:href="#plates" href="#plates" x="360" />
-          <use xlink:href="#plates" href="#plates" x="-360" />
-          <path id="graticule" />
-          <path id="reach" />
-        </svg>
-
         <div class="marker you" id="you">
           <div class="halo"></div>
           <div class="dot"></div>

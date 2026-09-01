@@ -7,8 +7,7 @@ import {
   writeEdgeAppCache,
 } from '@screenly/edge-apps'
 
-import landPath from './data/world-land.txt?raw'
-import platePath from './data/plate-boundaries.txt?raw'
+import worldSvg from './world.svg?raw'
 
 /** One earthquake, trimmed to the fields this app actually draws. */
 interface Quake {
@@ -41,8 +40,11 @@ let stage!: HTMLElement
 let map!: HTMLElement
 let world!: SVGSVGElement
 
-let coordinates: [number, number] = [NaN, NaN]
-let found: Quake[] = []
+/** Where the screen itself is, from the player metadata. Everything is relative to it. */
+let screenLat = NaN
+let screenLng = NaN
+
+let nearestQuakes: Quake[] = []
 let viewKm = 0
 let west = 0
 let east = 0
@@ -53,7 +55,7 @@ function say(id: string, text: string): void {
   document.getElementById(id)!.textContent = text
 }
 
-function setPath(id: string, d: string): void {
+function setD(id: string, d: string): void {
   document.getElementById(id)!.setAttribute('d', d)
 }
 
@@ -62,20 +64,22 @@ function setPath(id: string, d: string): void {
  * quake just over the antimeridian reads as near rather than half a world away.
  */
 function longitudeOf(quake: Quake): number {
-  if (quake.lng - coordinates[1] > 180) return quake.lng - 360
-  if (quake.lng - coordinates[1] < -180) return quake.lng + 360
+  if (quake.lng - screenLng > 180) return quake.lng - 360
+  if (quake.lng - screenLng < -180) return quake.lng + 360
   return quake.lng
 }
 
 function kmAway(quake: Quake): number {
-  const lat1 = coordinates[0] * RADIANS
+  // Haversine: 2R·asin(√h). 12742 km is the Earth's mean diameter, the 2R.
+  const earthDiameterKm = 12742
+  const lat1 = screenLat * RADIANS
   const lat2 = quake.lat * RADIANS
   const dLat = lat2 - lat1
-  const dLng = (longitudeOf(quake) - coordinates[1]) * RADIANS
+  const dLng = (longitudeOf(quake) - screenLng) * RADIANS
   const h =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
-  return 12742 * Math.asin(Math.sqrt(h))
+  return earthDiameterKm * Math.asin(Math.sqrt(h))
 }
 
 function heading(quake: Quake): string {
@@ -97,9 +101,9 @@ function heading(quake: Quake): string {
     'NW',
     'NNW',
   ]
-  const lat1 = coordinates[0] * RADIANS
+  const lat1 = screenLat * RADIANS
   const lat2 = quake.lat * RADIANS
-  const dLng = (longitudeOf(quake) - coordinates[1]) * RADIANS
+  const dLng = (longitudeOf(quake) - screenLng) * RADIANS
   const y = Math.sin(dLng) * Math.cos(lat2)
   const x =
     Math.cos(lat1) * Math.sin(lat2) -
@@ -115,11 +119,11 @@ function shape(): number {
 }
 
 function frame(width: number): void {
-  const wide = width / KM_PER_DEGREE / Math.cos(coordinates[0] * RADIANS)
+  const wide = width / KM_PER_DEGREE / Math.cos(screenLat * RADIANS)
   const high = (width / KM_PER_DEGREE) * shape()
-  west = coordinates[1] - wide * YOU_ACROSS
+  west = screenLng - wide * YOU_ACROSS
   east = west + wide
-  north = coordinates[0] + high * YOU_DOWN
+  north = screenLat + high * YOU_DOWN
   south = north - high
   world.setAttribute('viewBox', `${west} ${-north} ${wide} ${high}`)
 }
@@ -133,11 +137,11 @@ function widthToFitKept(quakes: Quake[]): number {
   const widestKm = 12000
   let needed = 0
   for (const quake of quakes) {
-    const up = Math.abs(quake.lat - coordinates[0])
-    const along = Math.abs(longitudeOf(quake) - coordinates[1])
+    const up = Math.abs(quake.lat - screenLat)
+    const along = Math.abs(longitudeOf(quake) - screenLng)
     needed = Math.max(
       needed,
-      (along / YOU_ACROSS) * KM_PER_DEGREE * Math.cos(coordinates[0] * RADIANS),
+      (along / YOU_ACROSS) * KM_PER_DEGREE * Math.cos(screenLat * RADIANS),
     )
     needed = Math.max(needed, ((up / YOU_DOWN) * KM_PER_DEGREE) / shape())
   }
@@ -185,28 +189,24 @@ function graticule(): void {
   for (let lat = Math.ceil(south / step) * step; lat < north; lat += step) {
     d += `M${west} ${-lat}H${east}`
   }
-  setPath('graticule', d)
+  setD('graticule', d)
 }
 
 function draw(): void {
   frame(viewKm)
-  const quake = found.find(inView)
+  const quake = nearestQuakes.find(inView)
   if (!quake) return
 
   graticule()
-  at(
-    document.getElementById('you') as HTMLElement,
-    coordinates[0],
-    coordinates[1],
-  )
+  at(document.getElementById('you') as HTMLElement, screenLat, screenLng)
   at(
     document.getElementById('nearest') as HTMLElement,
     quake.lat,
     longitudeOf(quake),
   )
-  setPath(
+  setD(
     'reach',
-    `M${coordinates[1]} ${-coordinates[0]}L${longitudeOf(quake)} ${-quake.lat}`,
+    `M${screenLng} ${-screenLat}L${longitudeOf(quake)} ${-quake.lat}`,
   )
 
   say('mag', quake.mag.toFixed(1))
@@ -218,7 +218,7 @@ function draw(): void {
 
 function show(quakes: Quake[]): void {
   stage.className = ''
-  found = quakes
+  nearestQuakes = quakes
   viewKm = widthToFitKept(quakes)
   draw()
 }
@@ -229,11 +229,25 @@ function show(quakes: Quake[]): void {
  * signal through — an app that never signals stalls the playlist for 60s and
  * is then dropped with PlaybackReason::LoadTimeout.
  */
-function unavailable(): void {
+function abort(): void {
   stage.className = 'unavailable'
   say('lede', 'Earthquake data')
   say('where', 'Unavailable')
   say('coord', 'The USGS feed could not be reached and nothing is cached')
+}
+
+/**
+ * What comes back off the wire is unknown, so it is narrowed rather than
+ * asserted. This checks the envelope only — enough to tell a feed from the
+ * proxy handing back an error page. Individual features are not validated;
+ * anything malformed inside one falls out in nearestKept or reads as NaN.
+ */
+function hasFeatures(value: unknown): value is { features: FeedFeature[] } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Array.isArray((value as { features?: unknown }).features)
+  )
 }
 
 /** Nearest first, trimmed to what is drawn, capped at what the view needs. */
@@ -276,7 +290,8 @@ async function load(): Promise<void> {
         `USGS feed returned ${response.status} ${response.statusText}`,
       )
     }
-    const feed = (await response.json()) as { features: FeedFeature[] }
+    const feed: unknown = await response.json()
+    if (!hasFeatures(feed)) throw new Error('USGS feed had no features array')
     const quakes = nearestKept(feed.features)
     writeEdgeAppCache(CACHE_NAMESPACE, CACHE_KEY, quakes)
     show(quakes)
@@ -285,14 +300,14 @@ async function load(): Promise<void> {
 
     const cached = readEdgeAppCache<Quake[]>(CACHE_NAMESPACE, CACHE_KEY)
     if (cached && cached.length > 0) show(cached)
-    else unavailable()
+    else abort()
   }
 }
 
 /** A screen with 0,0 or no coordinates has not been placed, it is not at sea. */
 function positioned(): boolean {
-  if (!isFinite(coordinates[0]) || !isFinite(coordinates[1])) return false
-  return coordinates[0] !== 0 || coordinates[1] !== 0
+  if (!isFinite(screenLat) || !isFinite(screenLng)) return false
+  return screenLat !== 0 || screenLng !== 0
 }
 
 async function start(): Promise<void> {
@@ -300,15 +315,14 @@ async function start(): Promise<void> {
 
   stage = document.getElementById('stage') as HTMLElement
   map = document.getElementById('map') as HTMLElement
+  map.insertAdjacentHTML('afterbegin', worldSvg)
   world = document.querySelector<SVGSVGElement>('#world')!
-
-  setPath('land', landPath)
-  setPath('plates', platePath)
 
   // The bridge hands coordinates over as strings; `+` on a string silently
   // poisons every sum downstream, so they are converted on the way in.
   const given = screenly.metadata.coordinates ?? []
-  coordinates = [Number(given[0]), Number(given[1])]
+  screenLat = Number(given[0])
+  screenLng = Number(given[1])
 
   if (!positioned()) {
     stage.className = 'unlocated'
@@ -322,7 +336,7 @@ async function start(): Promise<void> {
   say('where', screenly.metadata.location || 'This screen')
   say(
     'coord',
-    `${degrees(coordinates[0], 'N', 'S')}, ${degrees(coordinates[1], 'E', 'W')}`,
+    `${degrees(screenLat, 'N', 'S')}, ${degrees(screenLng, 'E', 'W')}`,
   )
   window.addEventListener('resize', draw)
 

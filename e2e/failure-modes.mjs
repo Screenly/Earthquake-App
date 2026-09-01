@@ -85,7 +85,11 @@ async function probe(page) {
       cached: !!localStorage.getItem('earthquake-app:nearest'),
       cacheBytes: (localStorage.getItem('earthquake-app:nearest') || '').length,
       land: (document.getElementById('land').getAttribute('d') || '').length,
-      panic: !!document.querySelector('[class*="panic"], #panic-overlay'),
+      // The overlay also puts a class on <body>, so match the modal itself.
+      panic: !!document.querySelector('.panic-overlay__modal'),
+      panicText: (
+        document.querySelector('.panic-overlay__modal')?.textContent || ''
+      ).slice(0, 400),
     }
   })
 }
@@ -109,7 +113,9 @@ async function newPage(ctx, coords = LOCATED) {
 
 // ── 1. feed OK ────────────────────────────────────────────────────────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
   const page = await newPage(ctx)
   await page.route('**/cors/**', (r) =>
     r.fulfill({ status: 200, contentType: 'application/json', body: FEED }),
@@ -131,7 +137,11 @@ async function newPage(ctx, coords = LOCATED) {
   await page2.waitForTimeout(900)
   const s2 = await probe(page2)
   check('2 fail+cache -> shows content', s2.state, '(content)')
-  check('2 fail+cache -> from last reading', s2.spot, '2 km SSW of Saratoga, CA')
+  check(
+    '2 fail+cache -> from last reading',
+    s2.spot,
+    '2 km SSW of Saratoga, CA',
+  )
   check('2 fail+cache -> signalled once', s2.ready, 1)
   check('2 fail+cache -> no error overlay', s2.panic, false)
   await ctx.close()
@@ -139,7 +149,9 @@ async function newPage(ctx, coords = LOCATED) {
 
 // ── 3. feed fails, display_errors off, no cache -> abort state ────────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
   const page = await newPage(ctx)
   await page.route('**/cors/**', (r) => r.abort())
   await page.goto('http://127.0.0.1:8123/', { waitUntil: 'load' })
@@ -154,7 +166,9 @@ async function newPage(ctx, coords = LOCATED) {
 // ── 4. feed fails, display_errors ON -> error shown, still signals ────────────
 {
   settings = { units: 'miles', display_errors: 'true' }
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
   const page = await newPage(ctx)
   await page.route('**/cors/**', (r) => r.abort())
   await page.goto('http://127.0.0.1:8123/', { waitUntil: 'load' })
@@ -169,7 +183,9 @@ async function newPage(ctx, coords = LOCATED) {
 
 // ── 5. unlocated screen ───────────────────────────────────────────────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
   const page = await newPage(ctx, [])
   let fetched = false
   await page.route('**/cors/**', (r) => {
@@ -188,7 +204,9 @@ async function newPage(ctx, coords = LOCATED) {
 // ── 6. units setting ──────────────────────────────────────────────────────────
 {
   settings = { units: 'km' }
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
   const page = await newPage(ctx)
   await page.route('**/cors/**', (r) =>
     r.fulfill({ status: 200, contentType: 'application/json', body: FEED }),
@@ -203,7 +221,9 @@ async function newPage(ctx, coords = LOCATED) {
 
 // ── 7. a hanging feed must time out inside the budget ─────────────────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
   const page = await newPage(ctx)
   await page.route('**/cors/**', () => {
     /* never respond */
@@ -224,15 +244,66 @@ async function newPage(ctx, coords = LOCATED) {
 
 // ── 8. HTTP error status is treated as a failure ──────────────────────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
   const page = await newPage(ctx)
-  await page.route('**/cors/**', (r) => r.fulfill({ status: 503, body: 'nope' }))
+  await page.route('**/cors/**', (r) =>
+    r.fulfill({ status: 503, body: 'nope' }),
+  )
   await page.goto('http://127.0.0.1:8123/', { waitUntil: 'load' })
   await page.waitForTimeout(900)
   const s = await probe(page)
   check('8 HTTP 503 -> abort state', s.state, 'unavailable')
   check('8 HTTP 503 -> signalled once', s.ready, 1)
   await ctx.close()
+}
+
+// ── 9. 200 OK that is not a feed -> narrowed, not asserted ─────────────────
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
+  const page = await newPage(ctx)
+  await page.route('**/cors/**', (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'upstream unavailable' }),
+    }),
+  )
+  await page.goto('http://127.0.0.1:8123/', { waitUntil: 'load' })
+  await page.waitForTimeout(900)
+  const s = await probe(page)
+  check('9 junk payload -> abort state', s.state, 'unavailable')
+  check('9 junk payload -> signalled once', s.ready, 1)
+  check('9 junk payload -> no error overlay', s.panic, false)
+  await ctx.close()
+
+  // Without the narrowing this reads "Cannot read properties of undefined",
+  // which tells whoever turned display_errors on nothing about the feed.
+  settings = { units: 'miles', display_errors: 'true' }
+  const ctx2 = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
+  const page2 = await newPage(ctx2)
+  await page2.route('**/cors/**', (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'upstream unavailable' }),
+    }),
+  )
+  await page2.goto('http://127.0.0.1:8123/', { waitUntil: 'load' })
+  await page2.waitForTimeout(1200)
+  const s2 = await probe(page2)
+  check(
+    '9 junk + display_errors -> names the feed',
+    s2.panicText.includes('features array'),
+    true,
+  )
+  await ctx2.close()
+  settings = { units: 'miles' }
 }
 
 await browser.close()
