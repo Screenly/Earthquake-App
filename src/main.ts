@@ -2,7 +2,9 @@ import './style.css'
 import {
   getSettingWithDefault,
   readEdgeAppCache,
+  reportError,
   setupErrorHandling,
+  setupSentry,
   signalReady,
   writeEdgeAppCache,
 } from '@screenly/edge-apps'
@@ -268,18 +270,16 @@ function nearestKept(features: FeedFeature[]): Quake[] {
 }
 
 /**
- * The approved failure-mode algorithm, minus the credential half — this feed is
- * public, so there is nothing to authenticate.
- *
- *   fetch -> ok        : cache it, show it
- *         -> failed    : display_errors ? show the error
- *                                       : cached ? show that : abort
+ * Where the quakes come from, and nothing else. The try covers the fetch and
+ * the parse only: a fault in the drawing is not a fetch failure and must not
+ * be answered by falling back to cache.
  */
-async function load(): Promise<void> {
+async function nearest(): Promise<Quake[] | null> {
   // The screenshotter gives the page 10s to go quiet and then up to 10s more
   // for the ready signal. Time the feed out well inside that, so a hanging USGS
   // still leaves room to fall back to cache, draw, and signal.
   const fetchTimeoutMs = 8000
+  let quakes: Quake[]
   try {
     const feedUrl = `${screenly.cors_proxy_url}/https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson`
     const response = await fetch(feedUrl, {
@@ -292,16 +292,32 @@ async function load(): Promise<void> {
     }
     const feed: unknown = await response.json()
     if (!hasFeatures(feed)) throw new Error('USGS feed had no features array')
-    const quakes = nearestKept(feed.features)
-    writeEdgeAppCache(CACHE_NAMESPACE, CACHE_KEY, quakes)
-    show(quakes)
-  } catch (error) {
+    quakes = nearestKept(feed.features)
+  } catch (thrown) {
+    const error = thrown instanceof Error ? thrown : new Error(String(thrown))
+    reportError(error, { source: 'usgs-feed' })
     if (getSettingWithDefault<boolean>('display_errors', false)) throw error
-
-    const cached = readEdgeAppCache<Quake[]>(CACHE_NAMESPACE, CACHE_KEY)
-    if (cached && cached.length > 0) show(cached)
-    else abort()
+    return readEdgeAppCache<Quake[]>(CACHE_NAMESPACE, CACHE_KEY)
   }
+  // Outside the catch on purpose. writeEdgeAppCache swallows its own failures,
+  // so this cannot throw, and if that ever changes a cache fault should surface
+  // rather than send a good reading back through the failure path.
+  writeEdgeAppCache(CACHE_NAMESPACE, CACHE_KEY, quakes)
+  return quakes
+}
+
+/**
+ * The approved failure-mode algorithm, minus the credential half — this feed is
+ * public, so there is nothing to authenticate. Get the data, then draw it.
+ *
+ *   fetch -> ok        : cache it, show it
+ *         -> failed    : display_errors ? show the error
+ *                                       : cached ? show that : abort
+ */
+async function load(): Promise<void> {
+  const quakes = await nearest()
+  if (quakes && quakes.length > 0) show(quakes)
+  else abort()
 }
 
 /** A screen with 0,0 or no coordinates has not been placed, it is not at sea. */
@@ -311,6 +327,9 @@ function positioned(): boolean {
 }
 
 async function start(): Promise<void> {
+  // The manifest offers a sentry_dsn setting; without this call it does
+  // nothing. No DSN set means setupSentry returns immediately.
+  setupSentry('earthquake-app')
   setupErrorHandling()
 
   stage = document.getElementById('stage') as HTMLElement

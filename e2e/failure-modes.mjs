@@ -306,6 +306,27 @@ async function newPage(ctx, coords = LOCATED) {
   settings = { units: 'miles' }
 }
 
+// ── 10. an empty feed is no data, so it aborts like a failed one ───────────
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  })
+  const page = await newPage(ctx)
+  await page.route('**/cors/**', (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ type: 'FeatureCollection', features: [] }),
+    }),
+  )
+  await page.goto('http://127.0.0.1:8123/', { waitUntil: 'load' })
+  await page.waitForTimeout(900)
+  const s = await probe(page)
+  check('10 empty feed -> abort state', s.state, 'unavailable')
+  check('10 empty feed -> signalled once', s.ready, 1)
+  await ctx.close()
+}
+
 await browser.close()
 server.close()
 
