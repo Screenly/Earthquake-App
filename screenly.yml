@@ -1,14 +1,13 @@
 ---
 syntax: manifest_v1
 id: 01KZ77RN8V1GWCGTYG53HP1V0T
-description: Calls out the earthquakes around this screen on a map centred on its own location.
-author: Will Cornforth
-homepage_url: https://earthquake.usgs.gov
+user_version: '0.0.1'
+description: 'Calls out the earthquakes around this screen on a map centred on its own location.'
+icon: 'https://raw.githubusercontent.com/Screenly/Earthquake-App/main/icon.png'
+author: 'Will Cornforth'
+homepage_url: 'https://earthquake.usgs.gov'
 categories:
   - Dashboards
-entrypoint:
-  type: file
-  uri: index.html
 ready_signal: true
 settings:
   units:
@@ -17,12 +16,28 @@ settings:
     title: Distance units
     optional: true
     help_text:
+      schema_version: 1
       properties:
+        type: select
         help_text: Units for the distances in the labels.
         options:
           - label: Miles
             value: miles
           - label: Kilometres
             value: km
-        type: select
+  display_errors:
+    type: string
+    default_value: 'false'
+    title: Display Errors
+    optional: true
+    help_text:
       schema_version: 1
+      properties:
+        type: boolean
+        help_text: Show errors on screen instead of falling back to the last cached data. For debugging only.
+  sentry_dsn:
+    type: secret
+    title: Sentry Client Key
+    optional: true
+    is_global: true
+    help_text: Sentry Client Key from Sentry SDK for error capturing.
