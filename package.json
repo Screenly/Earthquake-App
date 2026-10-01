@@ -16,7 +16,7 @@
     "build:prod": "edge-apps-scripts build",
     "test": "bun test --pass-with-no-tests src/",
     "test:unit": "bun test --pass-with-no-tests src/",
-    "verify": "node e2e/failure-modes.mjs",
+    "verify": "node e2e/failure-modes.mjs && node e2e/override.mjs",
     "lint": "edge-apps-scripts lint --fix",
     "format": "prettier --write src/ scripts/ README.md index.html",
     "format:check": "prettier --check src/ scripts/ README.md index.html",

@@ -9,7 +9,11 @@ Nothing moves and nothing animates; the feed is refetched every five minutes.
 
 The map runs full bleed and the type sits on it in glass panels: the same paper a
 shade down, blurred, with a hairline edge, so the coastlines still read through
-them. A screen with no location set says exactly that instead of guessing.
+them. A screen with no location set says exactly that instead of guessing. Set
+`override_coordinates` to a latitude and longitude, like `9.9312,76.2673`, to
+centre the map somewhere else. The heading then names the nearest city to that
+point. Leave it blank and the screen's own position and location are used. `override_locale` changes how the numbers are written (`1.6` or `1,6`).
+The labels stay in English.
 
 Data from the public USGS feed, all magnitudes, past 7 days.
 
@@ -67,7 +71,8 @@ designed on `system-ui` and `ui-monospace` on purpose.
 Needs a player: the coordinates, the location name, the units setting and the
 CORS proxy all come from the injected `screenly.js` bridge. The bridge hands the
 coordinates over as strings — they are converted on the way in, because `+` on a
-string silently poisons every sum downstream.
+string silently poisons every sum downstream. A coordinate override is read the
+same way, and wins when it is a real latitude and longitude.
 
 ## Development
 

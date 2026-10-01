@@ -9,6 +9,29 @@ categories:
   - Dashboards
 ready_signal: true
 settings:
+  override_coordinates:
+    type: string
+    default_value: ''
+    title: Override Coordinates
+    optional: true
+    help_text:
+      schema_version: 1
+      properties:
+        type: string
+        help_text: |
+          Enter a comma-separated pair of coordinates (e.g., 37.8267,-122.4233). If not specified, the app will attempt to use the device's coordinates.
+  override_locale:
+    type: string
+    default_value: en
+    title: Override Locale
+    optional: true
+    help_text:
+      schema_version: 1
+      properties:
+        type: string
+        help_text: |
+          Override the default locale with a supported language code (e.g., en, fr, de). Defaults to English if not specified.
+          You can find the available locales here: https://momentjs.com/
   units:
     type: string
     default_value: miles

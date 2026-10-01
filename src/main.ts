@@ -9,6 +9,7 @@ import {
   writeEdgeAppCache,
 } from '@screenly/edge-apps'
 
+import { placeLabel, resolveLocale, resolvePosition } from './place'
 import worldSvg from './world.svg?raw'
 
 /** One earthquake, trimmed to the fields this app actually draws. */
@@ -42,9 +43,12 @@ let stage!: HTMLElement
 let map!: HTMLElement
 let world!: SVGSVGElement
 
-/** Where the screen itself is, from the player metadata. Everything is relative to it. */
+/** Where the screen itself is. Everything is relative to it. */
 let screenLat = NaN
 let screenLng = NaN
+
+/** How numbers are written. Labels stay in English. */
+let locale = 'en'
 
 let nearestQuakes: Quake[] = []
 let viewKm = 0
@@ -160,23 +164,30 @@ function at(element: HTMLElement, lat: number, lng: number): void {
   element.style.top = `${((north - lat) / (north - south)) * 100}%`
 }
 
+function formatNumber(value: number, digits: number): string {
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value)
+}
+
 function away(quake: Quake): string {
   const km = kmAway(quake)
   if (getSettingWithDefault<string>('units', 'miles') === 'km') {
-    return `${Math.round(km)} km`
+    return `${formatNumber(Math.round(km), 0)} km`
   }
-  return `${Math.round(km / 1.609)} mi`
+  return `${formatNumber(Math.round(km / 1.609), 0)} mi`
 }
 
 function ago(quake: Quake): string {
   const minutes = Math.round((Date.now() - quake.time) / 60000)
-  if (minutes < 60) return `${minutes} min`
-  if (minutes < 1440) return `${Math.round(minutes / 60)} hr`
-  return `${Math.round(minutes / 1440)} d`
+  if (minutes < 60) return `${formatNumber(minutes, 0)} min`
+  if (minutes < 1440) return `${formatNumber(Math.round(minutes / 60), 0)} hr`
+  return `${formatNumber(Math.round(minutes / 1440), 0)} d`
 }
 
 function degrees(value: number, positive: string, negative: string): string {
-  return `${Math.abs(value).toFixed(3)}° ${value < 0 ? negative : positive}`
+  return `${formatNumber(Math.abs(value), 3)}° ${value < 0 ? negative : positive}`
 }
 
 function graticule(): void {
@@ -211,7 +222,7 @@ function draw(): void {
     `M${screenLng} ${-screenLat}L${longitudeOf(quake)} ${-quake.lat}`,
   )
 
-  say('mag', quake.mag.toFixed(1))
+  say('mag', formatNumber(quake.mag, 1))
   say('spot', quake.place)
   say('distance', away(quake))
   say('direction', heading(quake))
@@ -320,12 +331,6 @@ async function load(): Promise<void> {
   else abort()
 }
 
-/** A screen with 0,0 or no coordinates has not been placed, it is not at sea. */
-function positioned(): boolean {
-  if (!isFinite(screenLat) || !isFinite(screenLng)) return false
-  return screenLat !== 0 || screenLng !== 0
-}
-
 async function start(): Promise<void> {
   // The manifest offers a sentry_dsn setting; without this call it does
   // nothing. No DSN set means setupSentry returns immediately.
@@ -337,13 +342,13 @@ async function start(): Promise<void> {
   map.insertAdjacentHTML('afterbegin', worldSvg)
   world = document.querySelector<SVGSVGElement>('#world')!
 
+  locale = resolveLocale()
+  document.documentElement.lang = locale
+
   // The bridge hands coordinates over as strings; `+` on a string silently
   // poisons every sum downstream, so they are converted on the way in.
-  const given = screenly.metadata.coordinates ?? []
-  screenLat = Number(given[0])
-  screenLng = Number(given[1])
-
-  if (!positioned()) {
+  const position = resolvePosition()
+  if (!position) {
     stage.className = 'unlocated'
     say('lede', 'This screen')
     say('where', 'No location set')
@@ -352,7 +357,10 @@ async function start(): Promise<void> {
     return
   }
 
-  say('where', screenly.metadata.location || 'This screen')
+  screenLat = position.lat
+  screenLng = position.lng
+
+  say('where', await placeLabel(position))
   say(
     'coord',
     `${degrees(screenLat, 'N', 'S')}, ${degrees(screenLng, 'E', 'W')}`,
