@@ -1,6 +1,6 @@
 # Earthquakes Near This Screen — Screenly Edge App
 
-![A map centred on the screen, with the nearest earthquake called out](screenshots/silicon-valley.png)
+![A map centred on the screen, with the nearest earthquake called out](screenshots/earthquake-app-1920x1080.webp)
 
 A map centred on the screen's own location. The nearest earthquake is called out
 — magnitude, place, distance, direction, how long ago — with a dashed line from
