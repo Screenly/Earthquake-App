@@ -118,8 +118,11 @@ which is an unrelated package.
 
 ## Deploy
 
-Pushing to `development` deploys to stage; pushing to `main` deploys to
-production. Both go through `.github/workflows/deploy.yml`.
+Pushing to `development` deploys to stage; pushing to `master` deploys to
+production. Both go through `.github/workflows/deploy.yml`, which calls
+[Screenly/edge-apps-actions](https://github.com/Screenly/edge-apps-actions)
+`update@v26.9.1`. The first create for an environment is the manual
+**Initialize Edge App** workflow.
 
 To deploy by hand:
 

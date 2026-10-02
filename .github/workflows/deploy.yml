@@ -1,43 +1,41 @@
----
-name: Deploy
+name: Update Edge App
 
-# main -> production, development -> stage, per the Edge Apps development doc.
+# development -> stage, master -> production.
+# From https://github.com/Screenly/edge-apps-actions/blob/main/examples/update-edge-app.yml
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main
       - development
+      - master
 
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: false
+run-name: Updating Edge App in ${{ github.event_name == 'workflow_dispatch' && 'stage' || (github.ref == 'refs/heads/master' && 'production' || 'stage') }}
 
 jobs:
-  deploy:
-    name: Deploy to ${{ github.ref_name == 'main' && 'production' || 'stage' }}
+  deploy-stage:
+    name: Updating Edge App in stage
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'production' || 'stage' }}
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/development') || github.event_name == 'workflow_dispatch'
+    environment: stage
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      # `bun run build` runs type-check first via the prebuild script, so a
-      # broken build never reaches a screen.
-      - name: Build
-        run: bun run build
-
-      # The manifest is copied into dist/ by the build, so the whole Edge App
-      # is dist/ and nothing else — no source, no node_modules, no repo files.
-      - name: Deploy Edge App
-        uses: Screenly/cli@v1.2.1
+      - uses: actions/checkout@v7
+      - uses: Screenly/edge-apps-actions/update@v26.9.1
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app deploy --path=dist/
+          environment: stage
+          delete_missing_settings: 'true'
+          edge_app_id: ${{ vars.STAGE_EDGE_APP_ID }}
+
+  deploy-production:
+    name: Updating Edge App in production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Screenly/edge-apps-actions/update@v26.9.1
+        with:
+          screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
+          environment: production
+          delete_missing_settings: 'true'
+          edge_app_id: ${{ vars.PRODUCTION_EDGE_APP_ID }}
