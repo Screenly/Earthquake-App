@@ -1,19 +1,18 @@
-name: CI
+name: Checks
 
 on:
   push:
     branches:
-      - master
       - development
+      - master
   pull_request:
     branches:
-      - master
       - development
+      - master
 
 jobs:
-  check:
-    name: Checks
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: Screenly/edge-apps-actions/checks@v26.9.1
+      - uses: Screenly/edge-apps-actions/checks@v1
