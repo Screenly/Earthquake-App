@@ -21,6 +21,13 @@ interface Quake {
   lng: number
 }
 
+/** The last good reading, and the position it was nearest to. */
+interface Cached {
+  lat: number
+  lng: number
+  quakes: Quake[]
+}
+
 interface FeedFeature {
   properties: { mag: number | null; place: string; time: number }
   geometry: { coordinates: [number, number, number] }
@@ -308,12 +315,18 @@ async function nearest(): Promise<Quake[] | null> {
     const error = thrown instanceof Error ? thrown : new Error(String(thrown))
     reportError(error, { source: 'usgs-feed' })
     if (getSettingWithDefault<boolean>('display_errors', false)) throw error
-    return readEdgeAppCache<Quake[]>(CACHE_NAMESPACE, CACHE_KEY)
+    // "Nearest" only means something for the position it was worked out from.
+    const cached = readEdgeAppCache<Cached>(CACHE_NAMESPACE, CACHE_KEY)
+    if (cached?.lat === screenLat && cached?.lng === screenLng) {
+      return cached.quakes
+    }
+    return null
   }
   // Outside the catch on purpose. writeEdgeAppCache swallows its own failures,
   // so this cannot throw, and if that ever changes a cache fault should surface
   // rather than send a good reading back through the failure path.
-  writeEdgeAppCache(CACHE_NAMESPACE, CACHE_KEY, quakes)
+  const cached: Cached = { lat: screenLat, lng: screenLng, quakes }
+  writeEdgeAppCache(CACHE_NAMESPACE, CACHE_KEY, cached)
   return quakes
 }
 
@@ -343,7 +356,6 @@ async function start(): Promise<void> {
   world = document.querySelector<SVGSVGElement>('#world')!
 
   locale = resolveLocale()
-  document.documentElement.lang = locale
 
   // The bridge hands coordinates over as strings; `+` on a string silently
   // poisons every sum downstream, so they are converted on the way in.

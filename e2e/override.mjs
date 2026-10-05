@@ -149,6 +149,30 @@ async function read(page) {
   await context.close()
 }
 
+{
+  const { context, page } = await open([])
+  settings = { units: 'miles', override_coordinates: '37.3861,-122.0839' }
+  await page.route('**/cors/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: FEED }),
+  )
+  await page.goto('http://127.0.0.1:8124/', { waitUntil: 'networkidle' })
+  await page.waitForTimeout(600)
+  check('cache -> first reading shown', (await read(page)).state, '(content)')
+
+  settings = { units: 'miles', override_coordinates: '51.5074,-0.1278' }
+  await page.unroute('**/cors/**')
+  await page.route('**/cors/**', (route) => route.abort())
+  await page.reload({ waitUntil: 'load' })
+  await page.waitForTimeout(900)
+  check(
+    'moved + feed fails -> old cache not reused',
+    (await read(page)).state,
+    'unavailable',
+  )
+  await context.close()
+  settings = { units: 'miles' }
+}
+
 await browser.close()
 server.close()
 

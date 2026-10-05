@@ -38,7 +38,9 @@ and is then dropped with `PlaybackReason::LoadTimeout`.
 Only the ten nearest quakes are cached, trimmed to the five fields that get
 drawn. That is what the view is sized to, so a cached render is identical to a
 live one, and it keeps the cache to about a kilobyte rather than the feed's few
-megabytes. Times are absolute, so a stale cache correctly ages its "when".
+megabytes. Times are absolute, so a stale cache correctly ages its "when". The
+cache remembers the position it was nearest to, and is ignored if the screen's
+position (or the coordinate override) has changed since.
 
 The feed is given 8 seconds. The screenshotter allows 10 seconds for the page to
 go quiet and 10 more for the ready signal, so timing out early leaves room to
