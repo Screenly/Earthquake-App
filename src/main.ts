@@ -132,7 +132,11 @@ function shape(): number {
 }
 
 function frame(width: number): void {
-  const wide = width / KM_PER_DEGREE / Math.cos(screenLat * RADIANS)
+  // 1/cos(latitude) runs to infinity at the poles; the world is only 360° round.
+  const wide = Math.min(
+    width / KM_PER_DEGREE / Math.cos(screenLat * RADIANS),
+    360,
+  )
   const high = (width / KM_PER_DEGREE) * shape()
   west = screenLng - wide * YOU_ACROSS
   east = west + wide

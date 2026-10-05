@@ -173,6 +173,48 @@ async function read(page) {
   settings = { units: 'miles' }
 }
 
+{
+  settings = { units: 'miles', override_coordinates: '90,0' }
+  const { context, page } = await open([])
+  const polarFeed = JSON.stringify({
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {
+          mag: 4.6,
+          place: 'north of Svalbard',
+          time: Date.now() - 60 * 60000,
+        },
+        geometry: { type: 'Point', coordinates: [10, 86, 10] },
+      },
+    ],
+  })
+  await page.route('**/cors/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: polarFeed,
+    }),
+  )
+  await page.goto('http://127.0.0.1:8124/', { waitUntil: 'commit' })
+  let signalled = false
+  try {
+    await page.waitForFunction(() => (window.__READY__ || 0) > 0, null, {
+      timeout: 10000,
+    })
+    signalled = true
+  } catch {
+    // A hung main thread never signals.
+  }
+  check('pole override -> still signals', signalled, true)
+  if (signalled) {
+    check('pole override -> shows content', (await read(page)).state, '(content)')
+  }
+  await context.close()
+  settings = { units: 'miles' }
+}
+
 await browser.close()
 server.close()
 
