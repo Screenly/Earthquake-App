@@ -1,10 +1,8 @@
 ---
 syntax: manifest_v1
-user_version: '0.0.1'
 description: 'Calls out the earthquakes around this screen on a map centred on its own location.'
 icon: https://playground.srly.io/edge-apps/icons/earthquake.svg
-author: 'Will Cornforth'
-homepage_url: 'https://earthquake.usgs.gov'
+author: Screenly, Inc.
 categories:
   - Dashboards
 ready_signal: true
