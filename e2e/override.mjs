@@ -138,6 +138,17 @@ async function read(page) {
   await context.close()
 }
 
+{
+  settings = { units: 'miles', override_coordinates: '51.5074,' }
+  const { context, page } = await open([])
+  await page.route('**/cors/**', (route) => route.abort())
+  await page.goto('http://127.0.0.1:8124/', { waitUntil: 'load' })
+  await page.waitForTimeout(700)
+  const view = await read(page)
+  check('half override + no fix -> unlocated', view.state, 'unlocated')
+  await context.close()
+}
+
 await browser.close()
 server.close()
 

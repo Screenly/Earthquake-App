@@ -14,10 +14,11 @@ export interface Position {
  * same pair from the player means the screen has not been placed.
  */
 function parseCoordinates(value: string): [number, number] | null {
-  const parts = value.split(',').map((part) => Number(part.trim()))
-  if (parts.length !== 2 || parts.some((part) => !Number.isFinite(part))) {
-    return null
-  }
+  const pieces = value.split(',').map((piece) => piece.trim())
+  // Number('') is 0, so a blank half would otherwise read as the equator or meridian.
+  if (pieces.length !== 2 || pieces.some((piece) => piece === '')) return null
+  const parts = pieces.map(Number)
+  if (parts.some((part) => !Number.isFinite(part))) return null
   const latitude = parts[0]!
   const longitude = parts[1]!
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null

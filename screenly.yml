@@ -35,8 +35,7 @@ settings:
         advanced: true
         display_order: 2
         help_text: |
-          Override the default locale with a supported language code (e.g., en, fr, de). Defaults to English if not specified.
-          You can find the available locales here: https://momentjs.com/
+          Change how numbers are written using a language code such as en, fr, de or pt-BR. Labels stay in English. Unsupported codes fall back to English.
   override_coordinates:
     type: string
     default_value: ''
