@@ -1,11 +1,8 @@
 ---
 syntax: manifest_v1
-id: 01KZ77RN8V1GWCGTYG53HP1V0T
-user_version: '0.0.1'
 description: 'Calls out the earthquakes around this screen on a map centred on its own location.'
-icon: 'https://raw.githubusercontent.com/Screenly/Earthquake-App/main/icon.png'
-author: 'Will Cornforth'
-homepage_url: 'https://earthquake.usgs.gov'
+icon: https://playground.srly.io/edge-apps/icons/earthquake.svg
+author: Screenly, Inc.
 categories:
   - Dashboards
 ready_signal: true
@@ -19,12 +16,39 @@ settings:
       schema_version: 1
       properties:
         type: select
+        display_order: 1
         help_text: Units for the distances in the labels.
         options:
           - label: Miles
             value: miles
           - label: Kilometres
             value: km
+  override_locale:
+    type: string
+    default_value: en
+    title: Override Locale
+    optional: true
+    help_text:
+      schema_version: 1
+      properties:
+        type: string
+        advanced: true
+        display_order: 2
+        help_text: |
+          Change how numbers are written using a language code such as en, fr, de or pt-BR. Labels stay in English. Unsupported codes fall back to English.
+  override_coordinates:
+    type: string
+    default_value: ''
+    title: Override Coordinates
+    optional: true
+    help_text:
+      schema_version: 1
+      properties:
+        type: string
+        advanced: true
+        display_order: 3
+        help_text: |
+          Enter a comma-separated pair of coordinates (e.g., 37.8267,-122.4233). If not specified, the app will attempt to use the device's coordinates.
   display_errors:
     type: string
     default_value: 'false'
@@ -34,6 +58,8 @@ settings:
       schema_version: 1
       properties:
         type: boolean
+        advanced: true
+        display_order: 4
         help_text: Show errors on screen instead of falling back to the last cached data. For debugging only.
   sentry_dsn:
     type: secret

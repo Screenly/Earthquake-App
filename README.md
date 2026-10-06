@@ -1,6 +1,6 @@
 # Earthquakes Near This Screen — Screenly Edge App
 
-![A map centred on the screen, with the nearest earthquake called out](screenshots/silicon-valley.png)
+![A map centred on the screen, with the nearest earthquake called out](screenshots/earthquake-app-1920x1080.webp)
 
 A map centred on the screen's own location. The nearest earthquake is called out
 — magnitude, place, distance, direction, how long ago — with a dashed line from
@@ -9,7 +9,11 @@ Nothing moves and nothing animates; the feed is refetched every five minutes.
 
 The map runs full bleed and the type sits on it in glass panels: the same paper a
 shade down, blurred, with a hairline edge, so the coastlines still read through
-them. A screen with no location set says exactly that instead of guessing.
+them. A screen with no location set says exactly that instead of guessing. Set
+`override_coordinates` to a latitude and longitude, like `9.9312,76.2673`, to
+centre the map somewhere else. The heading then names the nearest city to that
+point. Leave it blank and the screen's own position and location are used. `override_locale` changes how the numbers are written (`1.6` or `1,6`).
+The labels stay in English.
 
 Data from the public USGS feed, all magnitudes, past 7 days.
 
@@ -34,7 +38,9 @@ and is then dropped with `PlaybackReason::LoadTimeout`.
 Only the ten nearest quakes are cached, trimmed to the five fields that get
 drawn. That is what the view is sized to, so a cached render is identical to a
 live one, and it keeps the cache to about a kilobyte rather than the feed's few
-megabytes. Times are absolute, so a stale cache correctly ages its "when".
+megabytes. Times are absolute, so a stale cache correctly ages its "when". The
+cache remembers the position it was nearest to, and is ignored if the screen's
+position (or the coordinate override) has changed since.
 
 The feed is given 8 seconds. The screenshotter allows 10 seconds for the page to
 go quiet and 10 more for the ready signal, so timing out early leaves room to
@@ -67,7 +73,8 @@ designed on `system-ui` and `ui-monospace` on purpose.
 Needs a player: the coordinates, the location name, the units setting and the
 CORS proxy all come from the injected `screenly.js` bridge. The bridge hands the
 coordinates over as strings — they are converted on the way in, because `+` on a
-string silently poisons every sum downstream.
+string silently poisons every sum downstream. A coordinate override is read the
+same way, and wins when it is a real latitude and longitude.
 
 ## Development
 
@@ -113,8 +120,11 @@ which is an unrelated package.
 
 ## Deploy
 
-Pushing to `development` deploys to stage; pushing to `main` deploys to
-production. Both go through `.github/workflows/deploy.yml`.
+Pushing to `development` deploys to stage; pushing to `master` deploys to
+production. Both go through `.github/workflows/update-edge-app.yml`, which calls
+[Screenly/edge-apps-actions](https://github.com/Screenly/edge-apps-actions)
+`update@v26.9.1`. The first create for an environment is the manual
+**Initialize Edge App** workflow, `.github/workflows/initialize-edge-app.yml`.
 
 To deploy by hand:
 
