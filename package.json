@@ -26,14 +26,14 @@
   },
   "prettier": "./.prettierrc.json",
   "devDependencies": {
-    "@screenly/edge-apps": "^1.5.0",
+    "@screenly/edge-apps": "^26.8.0",
     "offline-geocode-city": "^1.0.2",
-    "typescript": "^5.9.3",
-    "prettier": "^3.8.1",
-    "@types/node": "^25.4.0",
-    "npm-run-all2": "^8.0.4",
-    "@playwright/test": "^1.58.0",
-    "playwright": "^1.58.0"
+    "typescript": "^6.0.3",
+    "prettier": "^3.9.9",
+    "@types/node": "^26.6.4",
+    "npm-run-all2": "^9.0.3",
+    "@playwright/test": "^1.63.0",
+    "playwright": "^1.63.0"
   },
   "author": "Will Cornforth"
 }
