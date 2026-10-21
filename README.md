@@ -122,10 +122,10 @@ which is an unrelated package.
 
 ## Deploy
 
-Pushing to `development` deploys to stage; pushing to `master` deploys to
-production. Both go through `.github/workflows/update-edge-app.yml`, which calls
+Pushing to `master` deploys to stage; pushing a `v*` tag on `master` deploys to
+production (see [Releasing](#releasing)). Both go through `.github/workflows/update-edge-app.yml`, which calls
 [Screenly/edge-apps-actions](https://github.com/Screenly/edge-apps-actions)
-`update@v26.9.1`. The first create for an environment is the manual
+`update@v26.10.0`. The first create for an environment is the manual
 **Initialize Edge App** workflow, `.github/workflows/initialize-edge-app.yml`.
 
 To deploy by hand:
@@ -137,6 +137,22 @@ bun run deploy
 That builds to `dist/` and deploys from there, so only `index.html`, the
 stylesheet and the bundle are uploaded — no source, no `node_modules`, nothing
 from the repo root.
+
+### Releasing
+
+Pushes to `master` deploy to stage automatically. To release to production, tag a commit on `master` and push the tag (the workflow refuses tags not on `master`):
+
+```bash
+git checkout master && git pull
+git tag v26.10.0
+git push origin v26.10.0
+```
+
+Then publish a GitHub Release whose notes list the pull requests merged since the previous release. Add `--draft` to review the notes before publishing:
+
+```bash
+gh release create v26.10.0 --verify-tag --generate-notes --title v26.10.0
+```
 
 ## Releases
 
