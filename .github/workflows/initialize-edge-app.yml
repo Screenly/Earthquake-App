@@ -32,7 +32,7 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v7
-      - uses: Screenly/edge-apps-actions/initialize@v26.9.1
+      - uses: Screenly/edge-apps-actions/initialize@v26.10.0
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
           edge_app_name: ${{ inputs.edge_app_name }}
