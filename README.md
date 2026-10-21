@@ -1,3 +1,5 @@
+[![Version](https://img.shields.io/github/v/release/Screenly/Earthquake-App)](https://github.com/Screenly/Earthquake-App/releases/latest)
+
 # Earthquakes Near This Screen — Screenly Edge App
 
 ![A map centred on the screen, with the nearest earthquake called out](screenshots/earthquake-app-1920x1080.webp)
