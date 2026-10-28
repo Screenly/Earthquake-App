@@ -124,8 +124,8 @@ which is an unrelated package.
 
 Pushing to `master` deploys to stage; pushing a `v*` tag on `master` deploys to
 production (see [Releasing](#releasing)). Both go through `.github/workflows/update-edge-app.yml`, which calls
-[Screenly/edge-apps-actions](https://github.com/Screenly/edge-apps-actions)
-`update@v26.10.0`. The first create for an environment is the manual
+the [Screenly/edge-apps-actions](https://github.com/Screenly/edge-apps-actions)
+reusable `update.yml` workflow (`v26.10.2`). The first create for an environment is the manual
 **Initialize Edge App** workflow, `.github/workflows/initialize-edge-app.yml`.
 
 To deploy by hand:
