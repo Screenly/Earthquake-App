@@ -140,7 +140,7 @@ from the repo root.
 
 ### Releasing
 
-Pushes to `master` deploy to stage automatically. To release to production, tag a commit on `master` and push the tag (the workflow refuses tags not on `master`):
+Pushes to `master` start a stage deploy, which waits for approval. To release to production, tag a commit on `master` and push the tag (the workflow refuses tags not on `master`); the production deploy also waits for approval:
 
 ```bash
 git checkout master && git pull
