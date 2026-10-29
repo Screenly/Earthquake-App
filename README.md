@@ -156,8 +156,8 @@ gh release create v26.10.0 --verify-tag --generate-notes --title v26.10.0
 
 ## Releases
 
-Tags are `v`-prefixed and incremental (`v0.0.1`, `v0.0.2`). `screenly.yml`
-carries the matching `user_version`, which is what the backend reads.
+Tags use CalVer, `vYY.MM.N` (for example `v26.10.0`), and are pushed as
+described in [Releasing](#releasing).
 
 - **GitHub Releases** — the technical record for the tag: fixes, dependency
   updates, refactors. Owned by engineering.
