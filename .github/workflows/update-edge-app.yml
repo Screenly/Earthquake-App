@@ -1,41 +1,22 @@
+---
 name: Update Edge App
 
-# development -> stage, master -> production.
-# From https://github.com/Screenly/edge-apps-actions/blob/main/examples/update-edge-app.yml
 on:
   workflow_dispatch:
   push:
     branches:
-      - development
+      - main
       - master
+    tags:
+      - 'v[0-9]*'
 
-run-name: Updating Edge App in ${{ github.event_name == 'workflow_dispatch' && 'stage' || (github.ref == 'refs/heads/master' && 'production' || 'stage') }}
+permissions:
+  contents: read
+
+run-name: Updating Earthquake App in ${{ (github.event_name == 'push' && !github.event.deleted && startsWith(github.ref, 'refs/tags/v')) && 'production' || 'stage' }}
 
 jobs:
-  deploy-stage:
-    name: Updating Edge App in stage
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/development') || github.event_name == 'workflow_dispatch'
-    environment: stage
-    steps:
-      - uses: actions/checkout@v7
-      - uses: Screenly/edge-apps-actions/update@v26.9.1
-        with:
-          screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
-          environment: stage
-          delete_missing_settings: 'true'
-          edge_app_id: ${{ vars.STAGE_EDGE_APP_ID }}
-
-  deploy-production:
-    name: Updating Edge App in production
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    environment: production
-    steps:
-      - uses: actions/checkout@v7
-      - uses: Screenly/edge-apps-actions/update@v26.9.1
-        with:
-          screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
-          environment: production
-          delete_missing_settings: 'true'
-          edge_app_id: ${{ vars.PRODUCTION_EDGE_APP_ID }}
+  update:
+    uses: Screenly/edge-apps-actions/.github/workflows/update.yml@v26.10.2
+    secrets:
+      SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
